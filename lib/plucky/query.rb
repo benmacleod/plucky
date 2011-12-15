@@ -6,10 +6,10 @@ module Plucky
     extend  Forwardable
 
     OptionKeys = [
-      :select, :offset, :order,                         # MM
-      :fields, :skip, :limit, :sort, :hint, :snapshot,  # Ruby Driver
-      :batch_size, :timeout, :transformer,              # Ruby Driver
-      :max_scan, :show_disk_loc, :return_key,           # Ruby Driver
+            :select, :offset, :order,                         # MM
+            :fields, :skip, :limit, :sort, :hint, :snapshot,  # Ruby Driver
+            :batch_size, :timeout, :transformer,              # Ruby Driver
+            :max_scan, :show_disk_loc, :return_key,           # Ruby Driver
     ]
 
     attr_reader    :criteria, :options, :collection
@@ -53,7 +53,13 @@ module Plucky
 
     def find_each(opts={})
       query = clone.amend(opts)
-      query.collection.find(query.criteria.to_hash, query.options.to_hash)
+      if block_given?
+        query.collection.find(query.criteria.to_hash, query.options.to_hash) do |cursor|
+          yield cursor
+        end
+      else
+        query.collection.find(query.criteria.to_hash, query.options.to_hash)
+      end
     end
 
     def find_one(opts={})
@@ -207,7 +213,7 @@ module Plucky
       "#<#{self.class}#{as_nice_string}>"
     end
 
-  private
+    private
     def set_fields(field_list, value)
       the_fields = {}
       field_list.each {|field| the_fields[field.to_sym] = value}
